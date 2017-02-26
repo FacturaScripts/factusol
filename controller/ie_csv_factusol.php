@@ -114,13 +114,7 @@ class ie_csv_factusol extends fs_controller
             if($aux != '')
             {
                $linea = $this->custom_explode($_POST['separador'], $aux);
-               if(!in_array('Código:', $linea))
-               {
-                  $this->new_error_msg("En la línea 1 del registro " . ($total + 1) . " falta el campo \'Código:\'");
-                  $error_reg = true;
-               }
-
-               if(!$error_reg)
+               if( in_array('Código:', $linea) )
                {
                   $sql = "SELECT * FROM clientes WHERE codcliente = " . $cli0->var2str($linea[1]) . ";";
                   $data = $this->db->select($sql);
@@ -139,7 +133,13 @@ class ie_csv_factusol extends fs_controller
                      $cliente->codcliente = $linea[1];
                   }
                }
-
+               else
+               {
+                  $this->new_error_msg("En la línea 1 del registro " . ($total + 1) . " falta el campo \'Código:\'");
+                  $error_reg = true;
+                  break;
+               }
+               
                //Linea 2
                $aux = trim(fgets($fcsv));
                if(!$error_reg)
@@ -515,8 +515,7 @@ class ie_csv_factusol extends fs_controller
                      $error_reg = true;
                   }
                }
-
-
+               
                //Línea 14
                //Fecha de alta:;19/05/2008;;
                $aux = trim(fgets($fcsv));
@@ -628,7 +627,12 @@ class ie_csv_factusol extends fs_controller
                //Línea 19
                //Vacio
                $aux = trim(fgets($fcsv));
-               if($cliente->save())
+               if( !isset($cliente) )
+               {
+                  $this->new_error_msg('Error al procesar el cliente.');
+                  break;
+               }
+               else if( $cliente->save() )
                {
                   $total++;
                   if(isset($direccion))
@@ -1036,7 +1040,13 @@ class ie_csv_factusol extends fs_controller
    private function custom_explode($separador, $texto)
    {
       $seplist = array();
-
+      
+      if( mb_detect_encoding($texto, 'UTF-8', TRUE) === FALSE )
+      {
+         /// si no es utf8, convertimos
+         $texto = utf8_encode($texto);
+      }
+      
       $aux = explode($separador, $texto);
       if($aux)
       {
