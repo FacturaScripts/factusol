@@ -886,7 +886,6 @@ class ie_csv_factusol extends fs_controller
       $impuestos = $imp0->all();
       $total = 0;
       $numlinea = 0;
-      $ultimoregistro = false;
       $ref_prov = NULL;
       $prov = NULL;
       $margen = NULL;
@@ -899,13 +898,6 @@ class ie_csv_factusol extends fs_controller
             $numlinea ++;
             if($aux != '')
             {
-               if($ultimoregistro)
-               {
-                  //Si no es el ultimo registro nos salimos del bucle y mandamos un error
-                  $this->new_error_msg('Se necesita un Código (Registro número ' . ($numlinea - 1) . ').');
-                  break;
-               }
-
                if($plinea)
                {
                   $linea = array();
@@ -919,70 +911,50 @@ class ie_csv_factusol extends fs_controller
 
                   /// ¿Existe el artículo?
                   $sql = "SELECT * FROM articulos";
-                  if($linea['Código'] == '')
-                  {
-                     //Para eliminar el último registro
-                     $ultimoregistro = true;
-                     continue; //No haga nada con él
-                  }
-                  else
+                  if($linea['Código'])
                   {
                      $sql .= " WHERE referencia = " . $art0->var2str($linea['Código']) . ";";
-                  }
-
-                  $data = $this->db->select($sql);
-                  if(count($linea) == count($plinea))
-                  {
-                     if(!$data OR isset($_POST['sobreescribir']))
+                     $data = $this->db->select($sql);
+                     if(count($linea) == count($plinea))
                      {
-                        if($data AND isset($_POST['sobreescribir']))
+                        if(!$data OR isset($_POST['sobreescribir']))
                         {
-                           $articulo = new articulo($data[0]);
-                        }
-                        else
-                        {
-                           $articulo = new articulo();
-                           $articulo->referencia = $linea['Código'];
-                        }
-
-                        $articulo->descripcion = $linea['Descripción'];
-                        $articulo->set_pvp( floatval($linea['Venta']) );
-                        $articulo->costemedio = $articulo->preciocoste = floatval($linea['Costo']);
-                        
-                        foreach($impuestos as $imp)
-                        {
-                           $articulo->codimpuesto = $imp->codimpuesto;
-                           break;
-                        }
-                        
-                        if($articulo->save())
-                        {
-                           $total++;
-                           $articulo->set_stock($this->empresa->codalmacen, floatval($linea['Stock()']));
-                           
-                           /*
-                           if(!isset($artproveedor[$linea['Prov.']][$linea['Ref.prov']]))
+                           if($data AND isset($_POST['sobreescribir']))
                            {
-                              $art_prov = new articulo_proveedor();
-                              $art_prov->referencia = $articulo->referencia;
-                              $art_prov->refproveedor = $linea['Ref.prov'];
-                              $art_prov->codproveedor = $linea['Prov.'];
-                              $art_prov->save();
-                              $artproveedor[$linea['Prov.']][$linea['Ref.prov']] = true;
+                              $articulo = new articulo($data[0]);
                            }
-                            * 
-                            */
-                        }
-                        else
-                        {
-                           $this->new_error_msg('Error al guardar los datos del artículo (Registro: ' . $linea['Código'] . ').');
-                           break;
+                           else
+                           {
+                              $articulo = new articulo();
+                              $articulo->referencia = $linea['Código'];
+                           }
+                           
+                           $articulo->descripcion = $linea['Descripción'];
+                           $articulo->set_pvp( floatval($linea['Venta']) );
+                           $articulo->costemedio = $articulo->preciocoste = floatval($linea['Costo']);
+                           
+                           foreach($impuestos as $imp)
+                           {
+                              $articulo->codimpuesto = $imp->codimpuesto;
+                              break;
+                           }
+                           
+                           if($articulo->save())
+                           {
+                              $total++;
+                              $articulo->set_stock($this->empresa->codalmacen, floatval($linea['Stock()']));
+                           }
+                           else
+                           {
+                              $this->new_error_msg('Error al guardar los datos del artículo (Registro: ' . $linea['Código'] . ').');
+                              break;
+                           }
                         }
                      }
-                  }
-                  else
-                  {
-                     $this->new_error_msg('Error en el número de campos (Registro: ' . $linea['Código'] . '). (' . $numlinea . ')');
+                     else
+                     {
+                        $this->new_error_msg('Error en el número de campos (Registro: ' . $linea['Código'] . '). (' . $numlinea . ')');
+                     }
                   }
                }
                else
