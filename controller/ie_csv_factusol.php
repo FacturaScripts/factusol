@@ -70,7 +70,7 @@ class ie_csv_factusol extends fs_controller
       {
          $this->separador = $_POST['separador'];
 
-         if( is_uploaded_file($_FILES['fcsv']['tmp_name']) )
+         if(is_uploaded_file($_FILES['fcsv']['tmp_name']))
          {
             if($_POST['contiene'] == 'clientes')
             {
@@ -100,565 +100,676 @@ class ie_csv_factusol extends fs_controller
 
    private function importar_clientes()
    {
+      $old_method = FALSE;
       $plinea = FALSE;
-      $cli0 = new cliente();
       $total = 0;
 
       $fcsv = fopen($_FILES['fcsv']['tmp_name'], 'r');
       if($fcsv)
       {
          while(!feof($fcsv)) {
-            //Linea 1
-            $error_reg = false;
             $aux = trim(fgets($fcsv));
             if($aux != '')
             {
                $linea = $this->custom_explode($_POST['separador'], $aux);
-               if( in_array('Código:', $linea) )
+               if(in_array('Código:', $linea))
                {
-                  $sql = "SELECT * FROM clientes WHERE codcliente = " . $cli0->var2str($linea[1]) . ";";
-                  $data = $this->db->select($sql);
-                  if($data)
+                  if($this->importar_cliente_aux($fcsv, $linea, $total))
                   {
-                     if( isset($_POST['sobreescribir']) )
-                     {
-                        $cliente = new cliente($data[0]);
-                     }
-                     else
-                        break;
+                     $total++;
                   }
                   else
+                     break;
+               }
+               else if(in_array('Cód.', $linea) OR $old_method)
+               {
+                  $old_method = TRUE;
+                  if($this->importar_cliente_old($plinea, $aux))
                   {
-                     $cliente = new cliente();
-                     $cliente->codcliente = $linea[1];
+                     $total++;
                   }
+                  else
+                     break;
                }
                else
                {
-                  $this->new_error_msg("En la línea 1 del registro " . ($total + 1) . " falta el campo \'Código:\'");
-                  $error_reg = true;
+                  $this->new_error_msg("En la línea 1 del registro " . ($total + 1) . " falta el campo 'Código:' o 'Cód.'.");
                   break;
                }
-               
-               //Linea 2
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('N.I.F.:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " falta el campo \'N.I.F.:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Forma de pago:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " falta el campo \'N.I.F.:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->cifnif = strtoupper( str_replace('-', '', $linea[1]) );
-                        $cliente->codpago = $linea[3];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Linea 3
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Nombre fiscal:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " falta el campo \'Nombre fiscal:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('% Financiación:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " falta el campo \'% Financiación:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->razonsocial = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 4
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Nombre comercial:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " falta el campo \'Nombre comercial:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Días de pago:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " falta el campo \'Días de pago:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->nombre = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 5
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Domicilio:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " falta el campo \'Domicilio:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Tarifa:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " falta el campo \'Tarifa:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg AND $linea[1] != '')
-                     {
-                        $direccion = new direccion_cliente();
-                        $direccion->codcliente = $cliente->codcliente;
-                        $direccion->descripcion = 'General';
-                        
-                        if( $cliente->exists() )
-                        {
-                           foreach($cliente->get_direcciones() as $dir)
-                           {
-                              $direccion = $dir;
-                              break;
-                           }
-                        }
-                        
-                        $direccion->codpais = $this->empresa->codpais;
-                        $direccion->direccion = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 6
-               //C.P.;;Tipo de cliente:;1 
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('C.P.', $linea))
-                     {
-                        $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " falta el campo \'C.P.\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Tipo de cliente:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " falta el campo \'Tipo de cliente:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg AND isset($direccion))
-                     {
-                        $direccion->codpostal = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 7
-               //Población:;;Tipo de documento:;0 
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Población:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " falta el campo \'Población:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Tipo de documento:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " falta el campo \'Tipo de documento:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg AND isset($direccion))
-                     {
-                        $direccion->ciudad = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 8
-               //Provincia:;;Descuentos fijos:;0  0  0
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Provincia:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " falta el campo \'Provincia:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Descuentos fijos:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " falta el campo \'Descuentos fijos:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg AND isset($direccion))
-                     {
-                        $direccion->provincia = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 9
-               //Teléfono:;655 071 047;Tarifa especial:;No
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Teléfono:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " falta el campo \'Teléfono:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Tarifa especial:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " falta el campo \'Tarifa especial:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $telefonos = explode('/', str_replace('-', '/', $linea[1]));
-                        $cliente->telefono1 = $telefonos[0];
-                        if( isset($telefonos[1]) )
-                        {
-                           $cliente->telefono2 = $telefonos[1];
-                        }
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 10
-               //Fax:;;Actividad:;  
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Fax:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " falta el campo \'Fax:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Actividad:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " falta el campo \'Actividad:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->fax = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 11
-               //Móvil:;;Portes:;Debidos
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Móvil:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " falta el campo \'Móvil:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!in_array('Portes:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " falta el campo \'Portes:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        if($linea[1])
-                        {
-                           $cliente->telefono2 = $linea[1];
-                        }
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 12
-               //Persona de contacto:;;IVA:;Si
-               $aux = trim(fgets($fcsv));
-
-               //Línea 13
-               //Agente:;0  -  ;Recargo:;No
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Recargo:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 13 del registro " . ($total + 1) . " falta el campo \'Recargo:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        if($linea[3] === 'Si')
-                        {
-                           $cliente->recargo = true;
-                        }
-                        else
-                        {
-                           $cliente->recargo = false;
-                        }
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 13 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-               
-               //Línea 14
-               //Fecha de alta:;19/05/2008;;
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Fecha de alta:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 14 del registro " . ($total + 1) . " falta el campo \'Fecha de alta:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->fechaalta = date('d-m-Y', strtotime($linea[1]));
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 14 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 15
-               //Horario:;;;
-               $aux = trim(fgets($fcsv));
-
-               //Línea 16
-               //E-mail:;;;
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('E-mail:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 16 del registro " . ($total + 1) . " falta el campo \'E-mail:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->email = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 16 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 17
-               //Web:;;;
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Web:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 17 del registro " . ($total + 1) . " falta el campo \'Web:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->web = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 17 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 18
-               //Observaciones:;;;
-               $aux = trim(fgets($fcsv));
-               if(!$error_reg)
-               {
-                  if($aux != '')
-                  {
-                     $linea = $this->custom_explode($_POST['separador'], $aux);
-                     if(!in_array('Observaciones:', $linea))
-                     {
-                        $this->new_error_msg("En la línea 18 del registro " . ($total + 1) . " falta el campo \'Observaciones:\'");
-                        $error_reg = true;
-                     }
-
-                     if(!$error_reg)
-                     {
-                        $cliente->observaciones = $linea[1];
-                     }
-                  }
-                  else
-                  {
-                     $this->new_error_msg("En la línea 18 del registro " . ($total + 1) . " esta vacío");
-                     $error_reg = true;
-                  }
-               }
-
-               //Línea 19
-               //Vacio
-               $aux = trim(fgets($fcsv));
-               if( !isset($cliente) )
-               {
-                  $this->new_error_msg('Error al procesar el cliente.');
-                  break;
-               }
-               else if( $cliente->save() )
-               {
-                  $total++;
-                  if(isset($direccion))
-                  {
-                     $direccion->save();
-                     unset($direccion);
-                  }
-               }
-               else
-                  $this->new_error_msg('Error al guardar los datos del cliente.');
-            }
-            else
-            {
-               //Si la linea 1 esta vacia continuo leyendo.
-               continue;
             }
          }
 
-         $this->new_message($total . ' registros importados.');
+         $this->new_message($total . ' clientes importados.');
       }
+   }
+
+   private function importar_cliente_aux(&$fcsv, &$linea, &$total)
+   {
+      $error_reg = FALSE;
+
+      $sql = "SELECT * FROM clientes WHERE codcliente = " . $this->empresa->var2str($linea[1]) . ";";
+      $data = $this->db->select($sql);
+      if($data)
+      {
+         if(isset($_POST['sobreescribir']))
+         {
+            $cliente = new cliente($data[0]);
+         }
+      }
+      else
+      {
+         $cliente = new cliente();
+         $cliente->codcliente = $linea[1];
+      }
+
+      //Linea 2
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('N.I.F.:', $linea))
+            {
+               $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " falta el campo \'N.I.F.:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Forma de pago:', $linea))
+            {
+               $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " falta el campo \'N.I.F.:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->cifnif = strtoupper(str_replace('-', '', $linea[1]));
+               $cliente->codpago = $linea[3];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 2 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Linea 3
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Nombre fiscal:', $linea))
+            {
+               $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " falta el campo \'Nombre fiscal:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('% Financiación:', $linea))
+            {
+               $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " falta el campo \'% Financiación:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->razonsocial = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 3 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 4
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Nombre comercial:', $linea))
+            {
+               $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " falta el campo \'Nombre comercial:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Días de pago:', $linea))
+            {
+               $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " falta el campo \'Días de pago:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->nombre = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 4 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 5
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Domicilio:', $linea))
+            {
+               $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " falta el campo \'Domicilio:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Tarifa:', $linea))
+            {
+               $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " falta el campo \'Tarifa:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg AND $linea[1] != '')
+            {
+               $direccion = new direccion_cliente();
+               $direccion->codcliente = $cliente->codcliente;
+               $direccion->descripcion = 'General';
+
+               if($cliente->exists())
+               {
+                  foreach($cliente->get_direcciones() as $dir)
+                  {
+                     $direccion = $dir;
+                     break;
+                  }
+               }
+
+               $direccion->codpais = $this->empresa->codpais;
+               $direccion->direccion = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 5 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 6
+      //C.P.;;Tipo de cliente:;1 
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('C.P.', $linea))
+            {
+               $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " falta el campo \'C.P.\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Tipo de cliente:', $linea))
+            {
+               $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " falta el campo \'Tipo de cliente:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg AND isset($direccion))
+            {
+               $direccion->codpostal = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 6 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 7
+      //Población:;;Tipo de documento:;0 
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Población:', $linea))
+            {
+               $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " falta el campo \'Población:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Tipo de documento:', $linea))
+            {
+               $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " falta el campo \'Tipo de documento:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg AND isset($direccion))
+            {
+               $direccion->ciudad = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 7 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 8
+      //Provincia:;;Descuentos fijos:;0  0  0
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Provincia:', $linea))
+            {
+               $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " falta el campo \'Provincia:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Descuentos fijos:', $linea))
+            {
+               $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " falta el campo \'Descuentos fijos:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg AND isset($direccion))
+            {
+               $direccion->provincia = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 8 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 9
+      //Teléfono:;655 071 047;Tarifa especial:;No
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Teléfono:', $linea))
+            {
+               $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " falta el campo \'Teléfono:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Tarifa especial:', $linea))
+            {
+               $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " falta el campo \'Tarifa especial:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $telefonos = explode('/', str_replace('-', '/', $linea[1]));
+               $cliente->telefono1 = $telefonos[0];
+               if(isset($telefonos[1]))
+               {
+                  $cliente->telefono2 = $telefonos[1];
+               }
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 9 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 10
+      //Fax:;;Actividad:;  
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Fax:', $linea))
+            {
+               $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " falta el campo \'Fax:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Actividad:', $linea))
+            {
+               $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " falta el campo \'Actividad:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->fax = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 10 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 11
+      //Móvil:;;Portes:;Debidos
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Móvil:', $linea))
+            {
+               $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " falta el campo \'Móvil:\'");
+               $error_reg = true;
+            }
+
+            if(!in_array('Portes:', $linea))
+            {
+               $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " falta el campo \'Portes:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               if($linea[1])
+               {
+                  $cliente->telefono2 = $linea[1];
+               }
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 11 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 12
+      //Persona de contacto:;;IVA:;Si
+      $aux = trim(fgets($fcsv));
+
+      //Línea 13
+      //Agente:;0  -  ;Recargo:;No
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Recargo:', $linea))
+            {
+               $this->new_error_msg("En la línea 13 del registro " . ($total + 1) . " falta el campo \'Recargo:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               if($linea[3] === 'Si')
+               {
+                  $cliente->recargo = true;
+               }
+               else
+               {
+                  $cliente->recargo = false;
+               }
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 13 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 14
+      //Fecha de alta:;19/05/2008;;
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Fecha de alta:', $linea))
+            {
+               $this->new_error_msg("En la línea 14 del registro " . ($total + 1) . " falta el campo \'Fecha de alta:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->fechaalta = date('d-m-Y', strtotime($linea[1]));
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 14 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 15
+      //Horario:;;;
+      $aux = trim(fgets($fcsv));
+
+      //Línea 16
+      //E-mail:;;;
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('E-mail:', $linea))
+            {
+               $this->new_error_msg("En la línea 16 del registro " . ($total + 1) . " falta el campo \'E-mail:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->email = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 16 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 17
+      //Web:;;;
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Web:', $linea))
+            {
+               $this->new_error_msg("En la línea 17 del registro " . ($total + 1) . " falta el campo \'Web:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->web = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 17 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 18
+      //Observaciones:;;;
+      $aux = trim(fgets($fcsv));
+      if(!$error_reg)
+      {
+         if($aux != '')
+         {
+            $linea = $this->custom_explode($_POST['separador'], $aux);
+            if(!in_array('Observaciones:', $linea))
+            {
+               $this->new_error_msg("En la línea 18 del registro " . ($total + 1) . " falta el campo \'Observaciones:\'");
+               $error_reg = true;
+            }
+
+            if(!$error_reg)
+            {
+               $cliente->observaciones = $linea[1];
+            }
+         }
+         else
+         {
+            $this->new_error_msg("En la línea 18 del registro " . ($total + 1) . " esta vacío");
+            $error_reg = true;
+         }
+      }
+
+      //Línea 19
+      //Vacio
+      $aux = trim(fgets($fcsv));
+      if(!isset($cliente))
+      {
+         $this->new_error_msg('Error al procesar el cliente.');
+         return FALSE;
+      }
+      else if($cliente->save())
+      {
+         if(isset($direccion))
+         {
+            $direccion->save();
+            unset($direccion);
+         }
+
+         return TRUE;
+      }
+      else
+      {
+         $this->new_error_msg('Error al guardar los datos del cliente.');
+         return FALSE;
+      }
+   }
+
+   private function importar_cliente_old(&$plinea, &$aux)
+   {
+      $ok = TRUE;
+
+      if($plinea)
+      {
+         $linea = array();
+         foreach($this->custom_explode($_POST['separador'], $aux) as $i => $value)
+         {
+            if($i < count($plinea))
+            {
+               $linea[$plinea[$i]] = $value;
+            }
+         }
+
+         //Cód.;Nombre;Dirección;C.P.;Población;Provincia;Teléfono;N.I.F.
+         /// ¿Existe el cliente?
+         $sql = "SELECT * FROM clientes";
+         if($linea['Nombre'] != '')
+         {
+            $sql .= " WHERE nombre = " . $this->empresa->var2str($linea['Nombre']) . ";";
+            $data = $this->db->select($sql);
+            if(count($linea) == count($plinea) AND ( !$data OR isset($_POST['sobreescribir'])))
+            {
+               if($data)
+               {
+                  if(isset($_POST['sobreescribir']))
+                  {
+                     $cliente = new cliente($data[0]);
+                  }
+                  else
+                     $ok = FALSE;
+               }
+               else
+               {
+                  $cliente = new cliente();
+                  $cliente->codcliente = $linea['Cód.'];
+               }
+
+               $cliente->nombre = $cliente->razonsocial = $linea['Nombre'];
+               $cliente->cifnif = strtoupper(str_replace('-', '', $linea['N.I.F.']));
+
+               $telefonos = explode('/', str_replace('-', '/', $linea['Teléfono']));
+               $cliente->telefono1 = $telefonos[0];
+               if(isset($telefonos[1]))
+               {
+                  $cliente->telefono2 = $telefonos[1];
+               }
+
+               if($cliente->save())
+               {
+                  if($linea['Dirección'] != '')
+                  {
+                     $direccion = new direccion_cliente();
+                     $direccion->codcliente = $cliente->codcliente;
+                     $direccion->descripcion = 'General';
+
+                     if($cliente->exists())
+                     {
+                        foreach($cliente->get_direcciones() as $dir)
+                        {
+                           $direccion = $dir;
+                           break;
+                        }
+                     }
+
+                     $direccion->codpais = $this->empresa->codpais;
+                     $direccion->direccion = $linea['Dirección'];
+                     $direccion->codpostal = $linea['C.P.'];
+                     $direccion->ciudad = $linea['Población'];
+                     $direccion->provincia = $linea['Provincia'];
+                     $direccion->save();
+                  }
+               }
+               else
+               {
+                  $this->new_error_msg('Error al guardar los datos del cliente.');
+               }
+            }
+         }
+      }
+      else
+      {
+         $plinea = $this->custom_explode($_POST['separador'], $aux);
+
+         $columnas = "Cód.;Nombre;Dirección;C.P.;Población;Provincia;Teléfono;N.I.F.";
+         if(!$this->validar_columnas($plinea, $this->custom_explode(';', $columnas)))
+         {
+            $this->new_error_msg('El archivo no contiene las columnas necesarias.');
+            $ok = FALSE;
+         }
+      }
+
+      return $ok;
    }
 
    private function importar_proveedores()
    {
       $plinea = FALSE;
-      $pr0 = new proveedor();
       $total = 0;
       $numlinea = 0;
       $ultimoregistro = false;
@@ -668,7 +779,7 @@ class ie_csv_factusol extends fs_controller
       {
          while(!feof($fcsv)) {
             $aux = trim(fgets($fcsv));
-            $numlinea ++;
+            $numlinea++;
             if($aux != '')
             {
                if($ultimoregistro)
@@ -692,10 +803,9 @@ class ie_csv_factusol extends fs_controller
                   //Cód.;Nombre;Dirección;C.P.;Población;Provincia;Teléfono;N.I.F.
                   /// ¿Existe el proveedor?
                   $sql = "SELECT * FROM proveedores";
-
                   if($linea['Nombre'] != '')
                   {
-                     $sql .= " WHERE nombre = " . $pr0->var2str($linea['Nombre']) . ";";
+                     $sql .= " WHERE nombre = ".$this->empresa->var2str($linea['Nombre']).";";
                   }
                   else
                   {
@@ -708,7 +818,7 @@ class ie_csv_factusol extends fs_controller
                   {
                      if($data)
                      {
-                        if( isset($_POST['sobreescribir']) )
+                        if(isset($_POST['sobreescribir']))
                         {
                            $proveedor = new proveedor($data[0]);
                         }
@@ -720,13 +830,13 @@ class ie_csv_factusol extends fs_controller
                         $proveedor = new proveedor();
                         $proveedor->codproveedor = $linea['Cód.'];
                      }
-                     
+
                      $proveedor->nombre = $proveedor->razonsocial = $linea['Nombre'];
-                     $proveedor->cifnif = strtoupper( str_replace('-', '', $linea['N.I.F.']) );
-                     
-                     $telefonos = explode('/', str_replace('-', '/', $linea['Teléfono']) );
+                     $proveedor->cifnif = strtoupper(str_replace('-', '', $linea['N.I.F.']));
+
+                     $telefonos = explode('/', str_replace('-', '/', $linea['Teléfono']));
                      $proveedor->telefono1 = $telefonos[0];
-                     if( isset($telefonos[1]) )
+                     if(isset($telefonos[1]))
                      {
                         $proveedor->telefono2 = $telefonos[1];
                      }
@@ -740,8 +850,8 @@ class ie_csv_factusol extends fs_controller
                            $direccion = new direccion_proveedor();
                            $direccion->codproveedor = $proveedor->codproveedor;
                            $direccion->descripcion = 'General';
-                           
-                           if( $proveedor->exists() )
+
+                           if($proveedor->exists())
                            {
                               foreach($proveedor->get_direcciones() as $dir)
                               {
@@ -749,7 +859,7 @@ class ie_csv_factusol extends fs_controller
                                  break;
                               }
                            }
-                           
+
                            $direccion->codpais = $this->empresa->codpais;
                            $direccion->direccion = $linea['Dirección'];
                            $direccion->codpostal = $linea['C.P.'];
@@ -778,14 +888,13 @@ class ie_csv_factusol extends fs_controller
             }
          }
 
-         $this->new_message($total . ' registros importados.');
+         $this->new_message($total . ' proveedores importados.');
       }
    }
 
    private function importar_familias()
    {
       $plinea = FALSE;
-      $fam0 = new familia();
       $total = 0;
       $numlinea = 0;
       $ultimoregistro = false;
@@ -795,7 +904,7 @@ class ie_csv_factusol extends fs_controller
       {
          while(!feof($fcsv)) {
             $aux = trim(fgets($fcsv));
-            $numlinea ++;
+            $numlinea++;
             if($aux != '')
             {
                if($ultimoregistro)
@@ -826,7 +935,7 @@ class ie_csv_factusol extends fs_controller
                   }
 
                   /// ¿Existe la familia?
-                  $sql = "SELECT * FROM familias  WHERE codfamilia = " . $fam0->var2str($linea['Código']) . ";";
+                  $sql = "SELECT * FROM familias  WHERE codfamilia = ".$this->empresa->var2str($linea['Código']).";";
                   $data = $this->db->select($sql);
                   if(count($linea) == count($plinea) AND ( !$data OR isset($_POST['sobreescribir'])))
                   {
@@ -873,7 +982,7 @@ class ie_csv_factusol extends fs_controller
             }
          }
 
-         $this->new_message($total . ' registros importados.');
+         $this->new_message($total . ' familias importadas.');
          $this->cache->clean();
       }
    }
@@ -881,14 +990,10 @@ class ie_csv_factusol extends fs_controller
    private function importar_articulos()
    {
       $plinea = FALSE;
-      $art0 = new articulo();
       $imp0 = new impuesto();
       $impuestos = $imp0->all();
       $total = 0;
       $numlinea = 0;
-      $ref_prov = NULL;
-      $prov = NULL;
-      $margen = NULL;
       
       $fcsv = fopen($_FILES['fcsv']['tmp_name'], 'r');
       if($fcsv)
@@ -913,7 +1018,7 @@ class ie_csv_factusol extends fs_controller
                   $sql = "SELECT * FROM articulos";
                   if($linea['Código'])
                   {
-                     $sql .= " WHERE referencia = " . $art0->var2str($linea['Código']) . ";";
+                     $sql .= " WHERE referencia = ".$this->empresa->var2str($linea['Código']).";";
                      $data = $this->db->select($sql);
                      if(count($linea) == count($plinea))
                      {
@@ -928,17 +1033,17 @@ class ie_csv_factusol extends fs_controller
                               $articulo = new articulo();
                               $articulo->referencia = $linea['Código'];
                            }
-                           
+
                            $articulo->descripcion = $linea['Descripción'];
-                           $articulo->set_pvp( floatval($linea['Venta']) );
+                           $articulo->set_pvp(floatval($linea['Venta']));
                            $articulo->costemedio = $articulo->preciocoste = floatval($linea['Costo']);
-                           
+
                            foreach($impuestos as $imp)
                            {
                               $articulo->codimpuesto = $imp->codimpuesto;
                               break;
                            }
-                           
+
                            if($articulo->save())
                            {
                               $total++;
@@ -970,7 +1075,7 @@ class ie_csv_factusol extends fs_controller
             }
          }
 
-         $this->new_message($total . ' registros importados.');
+         $this->new_message($total . ' artículos importados.');
       }
    }
 
@@ -1012,13 +1117,13 @@ class ie_csv_factusol extends fs_controller
    private function custom_explode($separador, $texto)
    {
       $seplist = array();
-      
-      if( mb_detect_encoding($texto, 'UTF-8', TRUE) === FALSE )
+
+      if(mb_detect_encoding($texto, 'UTF-8', TRUE) === FALSE)
       {
          /// si no es utf8, convertimos
          $texto = utf8_encode($texto);
       }
-      
+
       $aux = explode($separador, $texto);
       if($aux)
       {
@@ -1053,23 +1158,5 @@ class ie_csv_factusol extends fs_controller
       }
 
       return $seplist;
-   }
-
-   private function tofloat($num)
-   {
-      $dotPos = strrpos($num, '.');
-      $commaPos = strrpos($num, ',');
-      $sep = (($dotPos > $commaPos) && $dotPos) ? $dotPos :
-              ((($commaPos > $dotPos) && $commaPos) ? $commaPos : false);
-
-      if(!$sep)
-      {
-         return floatval(preg_replace("/[^0-9]/", "", $num));
-      }
-
-      return floatval(
-              preg_replace("/[^0-9]/", "", substr($num, 0, $sep)) . '.' .
-              preg_replace("/[^0-9]/", "", substr($num, $sep + 1, strlen($num)))
-      );
    }
 }
