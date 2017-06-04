@@ -140,6 +140,7 @@ class ie_csv_factusol extends fs_controller
          }
 
          $this->new_message($total . ' clientes importados.');
+         fclose($fcsv);
       }
    }
 
@@ -889,6 +890,7 @@ class ie_csv_factusol extends fs_controller
          }
 
          $this->new_message($total . ' proveedores importados.');
+         fclose($fcsv);
       }
    }
 
@@ -984,6 +986,7 @@ class ie_csv_factusol extends fs_controller
 
          $this->new_message($total . ' familias importadas.');
          $this->cache->clean();
+         fclose($fcsv);
       }
    }
 
@@ -1076,6 +1079,7 @@ class ie_csv_factusol extends fs_controller
          }
 
          $this->new_message($total . ' artículos importados.');
+         fclose($fcsv);
       }
    }
 
