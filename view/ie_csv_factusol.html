@@ -1,191 +1,191 @@
 {include="header"}
 
 <div class="container-fluid">
-   <div class="row">
-      <div class="col-sm-12">
-         <div class="page-header">
-            <h1>
-               <span class="glyphicon glyphicon-import"></span>
-               Importador FactuSol
-               <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
-                  <span class="glyphicon glyphicon-refresh"></span>
-               </a>
-            </h1>
-            <p class="help-block">
-               Desde aquí puedes importar información de FactuSol en formato CSV.
-               Si lo que tienes son archivos de <b>Excel</b>, entonces debes
-               guardarlos como CSV antes de importarlos.
-            </p>
-         </div>
-      </div>
-   </div>
-   <div class="row">
-      <div class="col-sm-6 col-lg-4">
-         <ol>
-            <li>
-               Abre Factusol, ve a informes y exporta, en archivos excel, los siguientes datos:
-               <ul>
-                  <li>Almacén -&gt; Artículos.</li>
-                  <li>Ventas -&gt; Clientes.</li>
-                  <li>Compras -&gt; Proveedores.</li>
-               </ul>
-            </li>
-            <li>
-               Abre cada uno de esos archivos con Excel (o libreoffice) y selecciona guardar como <b>archivo csv</b>.
-               Eligiendo <mark>;</mark> como separador.
-            </li>
-            <li>Por último, utiliza estos formularios para importar los datos.</li>
-         </ol>
-      </div>
-      <div class="col-sm-6 col-lg-4">
-         <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
-            <input type="hidden" name="contiene" value="clientes"/>
-            <div class="panel panel-default">
-               <div class="panel-heading">
-                  <h3 class="panel-title">
-                     <i class="fa fa-users" aria-hidden="true"></i>&nbsp; Importar clientes
-                  </h3>
-               </div>
-               <div class="panel-body">
-                  <div class="form-group">
-                     <input name="fcsv" type="file" accept=".csv"/>
-                  </div>
-                  <div class="checkbox">
-                     <label>
-                        <input type="checkbox" name="sobreescribir" value="TRUE"/>
-                        Sobreescribir los datos
-                     </label>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-6">
-                        <div class="form-group">
-                           Separador de columnas:
-                           <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
-                        </div>
-                     </div>
-                     <div class="col-sm-6 text-right">
-                        <br/>
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                           <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
-                        </button>
-                     </div>
-                  </div>
-               </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="page-header">
+                <h1>
+                    <span class="glyphicon glyphicon-import"></span>
+                    Importador FactuSol
+                    <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </a>
+                </h1>
+                <p class="help-block">
+                    Desde aquí puedes importar información de FactuSol en formato CSV.
+                    Si lo que tienes son archivos de <b>Excel</b>, entonces debes
+                    guardarlos como CSV antes de importarlos.
+                </p>
             </div>
-         </form>
-      </div>
-      <div class="col-sm-6 col-lg-4">
-         <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
-            <input type="hidden" name="contiene" value="proveedores"/>
-            <div class="panel panel-default">
-               <div class="panel-heading">
-                  <h3 class="panel-title">
-                     <i class="fa fa-users" aria-hidden="true"></i>&nbsp; Importar proveedores
-                  </h3>
-               </div>
-               <div class="panel-body">
-                  <div class="form-group">
-                     <input name="fcsv" type="file" accept=".csv"/>
-                  </div>
-                  <div class="checkbox">
-                     <label>
-                        <input type="checkbox" name="sobreescribir" value="TRUE"/>
-                        Sobreescribir los datos
-                     </label>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-6">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 col-lg-4">
+            <ol>
+                <li>
+                    Abre Factusol, ve a informes y exporta, en archivos excel, los siguientes datos:
+                    <ul>
+                        <li>Almacén -&gt; Artículos.</li>
+                        <li>Ventas -&gt; Clientes.</li>
+                        <li>Compras -&gt; Proveedores.</li>
+                    </ul>
+                </li>
+                <li>
+                    Abre cada uno de esos archivos con Excel (o libreoffice) y selecciona guardar como <b>archivo csv</b>.
+                    Eligiendo <mark>;</mark> como separador.
+                </li>
+                <li>Por último, utiliza estos formularios para importar los datos.</li>
+            </ol>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
+                <input type="hidden" name="contiene" value="clientes"/>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <i class="fa fa-users" aria-hidden="true"></i>&nbsp; Importar clientes
+                        </h3>
+                    </div>
+                    <div class="panel-body">
                         <div class="form-group">
-                           Separador de columnas:
-                           <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                            <input name="fcsv" type="file" accept=".csv"/>
                         </div>
-                     </div>
-                     <div class="col-sm-6 text-right">
-                        <br/>
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                           <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </form>
-      </div>
-      <div class="col-sm-6 col-lg-4">
-         <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
-            <input type="hidden" name="contiene" value="familias"/>
-            <div class="panel panel-default">
-               <div class="panel-heading">
-                  <h3 class="panel-title">
-                     <i class="fa fa-folder" aria-hidden="true"></i>&nbsp; Importar familias
-                  </h3>
-               </div>
-               <div class="panel-body">
-                  <div class="form-group">
-                     <input name="fcsv" type="file" accept=".csv"/>
-                  </div>
-                  <div class="checkbox">
-                     <label>
-                        <input type="checkbox" name="sobreescribir" value="TRUE"/>
-                        Sobreescribir los datos
-                     </label>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-6">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="sobreescribir" value="TRUE"/>
+                                Sobreescribir los datos
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    Separador de columnas:
+                                    <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <br/>
+                                <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
+                <input type="hidden" name="contiene" value="proveedores"/>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <i class="fa fa-users" aria-hidden="true"></i>&nbsp; Importar proveedores
+                        </h3>
+                    </div>
+                    <div class="panel-body">
                         <div class="form-group">
-                           Separador de columnas:
-                           <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                            <input name="fcsv" type="file" accept=".csv"/>
                         </div>
-                     </div>
-                     <div class="col-sm-6 text-right">
-                        <br/>
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                           <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </form>
-      </div>
-      <div class="col-sm-6 col-lg-4">
-         <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
-            <input type="hidden" name="contiene" value="articulos"/>
-            <div class="panel panel-default">
-               <div class="panel-heading">
-                  <h3 class="panel-title">
-                     <i class="fa fa-cubes" aria-hidden="true"></i>&nbsp; Importar artículos
-                  </h3>
-               </div>
-               <div class="panel-body">
-                  <div class="form-group">
-                     <input name="fcsv" type="file" accept=".csv"/>
-                  </div>
-                  <div class="checkbox">
-                     <label>
-                        <input type="checkbox" name="sobreescribir" value="TRUE"/>
-                        Sobreescribir los datos
-                     </label>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-6">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="sobreescribir" value="TRUE"/>
+                                Sobreescribir los datos
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    Separador de columnas:
+                                    <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <br/>
+                                <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
+                <input type="hidden" name="contiene" value="familias"/>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <i class="fa fa-folder" aria-hidden="true"></i>&nbsp; Importar familias
+                        </h3>
+                    </div>
+                    <div class="panel-body">
                         <div class="form-group">
-                           Separador de columnas:
-                           <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                            <input name="fcsv" type="file" accept=".csv"/>
                         </div>
-                     </div>
-                     <div class="col-sm-6 text-right">
-                        <br/>
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
-                           <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </form>
-      </div>
-   </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="sobreescribir" value="TRUE"/>
+                                Sobreescribir los datos
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    Separador de columnas:
+                                    <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <br/>
+                                <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <form enctype="multipart/form-data" action="{$fsc->url()}" method="post">
+                <input type="hidden" name="contiene" value="articulos"/>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <i class="fa fa-cubes" aria-hidden="true"></i>&nbsp; Importar artículos
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <input name="fcsv" type="file" accept=".csv"/>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="sobreescribir" value="TRUE"/>
+                                Sobreescribir los datos
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    Separador de columnas:
+                                    <input type="text" name="separador" value="{$fsc->separador}" class="form-control" maxlength="1" autocomplete="off"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <br/>
+                                <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled = true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-import"></span>&nbsp; Procesar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {include="footer"}

@@ -1,0 +1,13 @@
+{
+    "name": "vendor/factusol",
+    "description": "Description of project factusol.",
+    "authors": [
+        {
+            "name": "carlos",
+            "email": "your@email.here"
+        }
+    ],
+    "require": {
+        "parsecsv/php-parsecsv": "1.1.1"
+    }
+}
