@@ -10,11 +10,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  * 
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -32,12 +32,6 @@ class ie_csv_factusol extends fs_controller
      */
     public $contiene;
 
-    /**
-     *
-     * @var string
-     */
-    public $separador;
-
     public function __construct()
     {
         parent::__construct(__CLASS__, 'Importador FactuSol', 'admin');
@@ -46,7 +40,6 @@ class ie_csv_factusol extends fs_controller
     protected function private_core()
     {
         $this->contiene = isset($_REQUEST['contiene']) ? $_REQUEST['contiene'] : '';
-        $this->separador = isset($_POST['separador']) ? $_POST['separador'] : ';';
 
         switch ($this->contiene) {
             case 'articulos':
@@ -75,7 +68,6 @@ class ie_csv_factusol extends fs_controller
         $impuestos = $impuestoModel->all();
 
         $csv = new ParseCsv\Csv();
-        $csv->delimiter = $this->separador;
         $csv->parse($_FILES['fcsv']['tmp_name']);
 
         foreach ($csv->data as $linea) {
@@ -116,26 +108,35 @@ class ie_csv_factusol extends fs_controller
         $clienteModel = new cliente();
 
         $csv = new ParseCsv\Csv();
-        $csv->delimiter = $this->separador;
         $csv->parse($_FILES['fcsv']['tmp_name']);
 
         foreach ($csv->data as $linea) {
-            if (empty($linea) || count($linea) < 2 || !isset($linea['Cód']) || empty($linea['Cód'])) {
+            $codeKey = isset($linea['Código']) ? 'Código' : 'Cód';
+            if (empty($linea) || count($linea) < 2 || !isset($linea[$codeKey]) || empty($linea[$codeKey])) {
                 continue;
             }
 
-            $cliente = $clienteModel->get($linea['Cód']);
+            $cliente = $clienteModel->get($linea[$codeKey]);
             if (empty($cliente)) {
                 $cliente = new cliente();
             } elseif (!isset($_POST['sobreescribir'])) {
                 continue;
             }
 
-            $cliente->codcliente = $linea['Cód'];
-            $cliente->nombre = $linea['Nombre'];
-            $cliente->razonsocial = $linea['Nombre'];
+            $cliente->codcliente = $linea[$codeKey];
+            $cliente->nombre = isset($linea['Nombre comercial']) ? $linea['Nombre comercial'] : $linea['Nombre'];
+            $cliente->razonsocial = isset($linea['Nombre fiscal']) ? $linea['Nombre fiscal'] : $cliente->nombre;
             $cliente->telefono1 = $linea['Teléfono'];
             $cliente->cifnif = $linea['N.I.F.'];
+
+            if (isset($linea['E-mail']) && !empty($linea['E-mail'])) {
+                $cliente->email = $linea['E-mail'];
+            }
+
+            if (isset($linea['Móvil']) && !empty($linea['Móvil'])) {
+                $cliente->telefono2 = $linea['Móvil'];
+            }
+
             if ($cliente->save()) {
                 $total++;
 
@@ -144,8 +145,8 @@ class ie_csv_factusol extends fs_controller
                 $dir->codcliente = $cliente->codcliente;
                 $dir->codpais = $this->empresa->codpais;
                 $dir->ciudad = $linea['Población'];
-                $dir->codpostal = $linea['C.P.'];
-                $dir->direccion = $linea['Dirección'];
+                $dir->codpostal = isset($linea['Cód. Postal']) ? $linea['Cód. Postal'] : $linea['C.P.'];
+                $dir->direccion = isset($linea['Domicilio']) ? $linea['Domicilio'] : $linea['Dirección'];
                 $dir->provincia = $linea['Provincia'];
                 $dir->save();
             }
@@ -154,32 +155,71 @@ class ie_csv_factusol extends fs_controller
         $this->new_message($total . ' clientes importados.');
     }
 
+    private function importar_familias()
+    {
+        $total = 0;
+        $familiaModel = new articulo();
+
+        $csv = new ParseCsv\Csv();
+        $csv->parse($_FILES['fcsv']['tmp_name']);
+
+        foreach ($csv->data as $linea) {
+            if (empty($linea) || count($linea) < 2 || !isset($linea['Código']) || empty($linea['Código'])) {
+                continue;
+            }
+
+            $familia = $familiaModel->get($linea['Código']);
+            if (empty($familia)) {
+                $familia = new familia();
+            } elseif (!isset($_POST['sobreescribir'])) {
+                continue;
+            }
+
+            $familia->codfamilia = $linea['Código'];
+            $familia->descripcion = $linea['Descripción'];
+            if ($familia->save()) {
+                $total++;
+            }
+        }
+
+        $this->new_message($total . ' familias importadas.');
+    }
+
     private function importar_proveedores()
     {
         $total = 0;
         $proveedorModel = new proveedor();
 
         $csv = new ParseCsv\Csv();
-        $csv->delimiter = $this->separador;
         $csv->parse($_FILES['fcsv']['tmp_name']);
 
         foreach ($csv->data as $linea) {
-            if (empty($linea) || count($linea) < 2 || !isset($linea['Cód']) || empty($linea['Cód'])) {
+            $codeKey = isset($linea['Código']) ? 'Código' : 'Cód';
+            if (empty($linea) || count($linea) < 2 || !isset($linea[$codeKey]) || empty($linea[$codeKey])) {
                 continue;
             }
 
-            $proveedor = $proveedorModel->get($linea['Cód']);
+            $proveedor = $proveedorModel->get($linea[$codeKey]);
             if (empty($proveedor)) {
                 $proveedor = new proveedor();
             } elseif (!isset($_POST['sobreescribir'])) {
                 continue;
             }
 
-            $proveedor->codproveedor = $linea['Cód'];
-            $proveedor->nombre = $linea['Nombre'];
-            $proveedor->razonsocial = $linea['Nombre'];
+            $proveedor->codproveedor = $linea[$codeKey];
+            $proveedor->nombre = isset($linea['Nombre comercial']) ? $linea['Nombre comercial'] : $linea['Nombre'];
+            $proveedor->razonsocial = isset($linea['Nombre fiscal']) ? $linea['Nombre fiscal'] : $proveedor->nombre;
             $proveedor->telefono1 = $linea['Teléfono'];
             $proveedor->cifnif = $linea['N.I.F.'];
+
+            if (isset($linea['E-mail']) && !empty($linea['E-mail'])) {
+                $proveedor->email = $linea['E-mail'];
+            }
+
+            if (isset($linea['Móvil']) && !empty($linea['Móvil'])) {
+                $proveedor->telefono2 = $linea['Móvil'];
+            }
+
             if ($proveedor->save()) {
                 $total++;
 
@@ -188,18 +228,13 @@ class ie_csv_factusol extends fs_controller
                 $dir->codproveedor = $proveedor->codproveedor;
                 $dir->codpais = $this->empresa->codpais;
                 $dir->ciudad = $linea['Población'];
-                $dir->codpostal = $linea['C.P.'];
-                $dir->direccion = $linea['Dirección'];
+                $dir->codpostal = isset($linea['Cód. Postal']) ? $linea['Cód. Postal'] : $linea['C.P.'];
+                $dir->direccion = isset($linea['Domicilio']) ? $linea['Domicilio'] : $linea['Dirección'];
                 $dir->provincia = $linea['Provincia'];
                 $dir->save();
             }
         }
 
         $this->new_message($total . ' proveedors importados.');
-    }
-
-    private function importar_familias()
-    {
-        
     }
 }
